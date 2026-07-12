@@ -11,7 +11,8 @@ from scripts import (
     seed_maintenance_issues,
     seed_maintenance_solutions,
     seed_license_categories,
-    seed_fuel_price
+    seed_fuel_price,
+    seed_mock_data
 )
 
 def main():
@@ -23,6 +24,7 @@ def main():
     seed_maintenance_solutions.run_seed()
     seed_license_categories.run_seed()
     seed_fuel_price.run_seed()
+    seed_mock_data.run_seed()
     print("====== SEEDING SEQUENCE COMPLETED ======")
 
 if __name__ == "__main__":

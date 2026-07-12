@@ -1,81 +1,95 @@
 # TransitOps — Smart Transport Operations Platform
 
-TransitOps is a full-stack fleet management platform designed exclusively for cargo/goods fleet operations. It features OOP service/repository abstractions, native browser AES-GCM client-side encryption for sensitive PII data, dynamic activity monitors (audit logs), reference seed files, and a multi-container Docker compose orchestrator.
+TransitOps is a full-stack, enterprise-grade cargo/goods fleet management platform. The application is built with a modular OOP backend architecture (FastAPI + SQLAlchemy), native browser AES-GCM client-side encryption for secure driver PII data, and a modern, high-performance React + TypeScript frontend.
 
 ---
 
-## Architecture & OOP Abstraction Notes
+## 🚀 Quick Start Guide (Local Development)
 
-The backend has been structured using a modular layered architecture (`Routers -> Services -> Repositories -> SQLAlchemy Models`):
-- **BaseRepository Interface (`BaseRepository[T]`)**: Sourced as a generic abstract base class utilizing Python's `abc.ABC` and `typing.Generic`. Subclasses like `VehicleRepository` inherit standard database operations (`get`, `list`, `create`, `update`, `delete`), separating SQL query configurations from routes.
-- **Service Layer**: Handles business logic. Subclasses (`TripService`, `MaintenanceService`, etc.) execute constraints like vehicle capacity check logic, status transition locks, and license class validation.
-- **Polymorphism & Abstraction**: Defined by the abstract `NotificationService` interface and its concrete subclasses (e.g. `EmailNotificationService`). This decouples alerts from notification targets, allowing future extensions (like SMS/Slack integrations) to be swapped in without modifying main code block.
-- **Encapsulation**: State mutations (e.g. converting a vehicle to `In Shop` when a maintenance log is created, or locking vehicles and drivers to `On Trip` upon trip dispatch) are encapsulated strictly inside service boundaries.
+Follow these steps to run the application on your system with PostgreSQL.
 
----
+### 1. Database Setup (PostgreSQL)
+Ensure your PostgreSQL instance is running. 
+> [!NOTE]
+> The local database config is configured to connect to PostgreSQL on **port `5433`** with password `XYZ=octa` as defined in `backend/.env`.
 
-## Zero-Knowledge Encryption Model (Tradeoffs)
-
-We use the browser's native Web Crypto API (`AES-GCM` 256-bit) to encrypt `driver.license_number` and `driver.contact_number` client-side:
-- **Key Derivation**: During login, the password entered is combined with the user's email as salt using `PBKDF2` to generate the symmetric key.
-- **Key Storage Choice & Tradeoffs**:
-  - We store the password transiently in `sessionStorage` (cleared automatically when the browser tab is closed) to re-derive the key upon page refresh.
-  - **Tradeoff Profile**:
-    - *passphrase entered locally* (zero-knowledge): The backend never sees the encryption key or plaintext PII.
-    - *data recovery*: Since the key is derived from the user's password, if the password is changed, older records remain encrypted with the previous key unless re-encrypted. If the password is forgotten, the PII data is unrecoverable.
-    - *backend visibility*: The backend and database only see Base64 ciphertext, preserving privacy even in case of database breaches.
-
----
-
-## Role-Based Access Control (RBAC) Matrix
-
-| Route Group | Action | Fleet Manager | Driver | Safety Officer | Financial Analyst |
-|---|---|---|---|---|---|
-| **/vehicles** | Create/Update/Delete | ✅ | — | — | — |
-| | Read List / Pool | ✅ | ✅ | ✅ | ✅ |
-| **/drivers** | Create/Update | ✅ | — | ✅ | — |
-| | Suspend Driver | — | — | ✅ | — |
-| | Read List / Pool | ✅ | ✅ | ✅ | ✅ |
-| **/trips** | Create/Dispatch/Complete/Cancel | ✅ | ✅ | — | — |
-| | Read List | ✅ | ✅ | — | — |
-| **/maintenance** | Create/Close logs | ✅ | — | — | — |
-| **/fuel-expense** | Log Fuel / Toll | ✅ | ✅ | — | — |
-| | Check Operational Cost | ✅ | — | — | ✅ |
-| **/activity-logs** | Read / Export CSV | ✅ | — | ✅ | — |
-| **/reports** | View ROI Summary / Export | ✅ | — | ✅ | ✅ |
-
----
-
-## Seed Data Catalogs & Usage
-
-Reference catalogs are loaded idempotently from `seed_data/` files during backend startup (via `python seed.py`). If a CSV file is missing, the system prints a warning and skips seeding gracefully.
-
-1. **`locations.csv`**: Seeds `locations` table. Checks source/destination pincodes on Trips, auto-calculating planned routes using the haversine formula.
-2. **`vehicle_catalog.csv`**: Seeds cargo carrier designs. Governs dropdown templates and pre-fills limits and minimum licenses required for drivers.
-3. **`maintenance_issues.csv`**: Seeds issue classifications. Used when creating repair tickets.
-4. **`maintenance_solutions.csv`**: Seeds ticket solutions. Used when closing repair tickets.
-5. **`license_categories.csv`**: Seeds category mappings (`LMV-TR`, `HMV`, `HGMV`).
-6. **`fuel_price_reference.csv`**: Sourced for regional fuel pricing calculations.
-
----
-
-## Quick Start (Docker Compose)
-
-Launch the entire stack with one command:
+Run the database creation script:
 ```bash
-docker-compose up --build
+# Navigate to backend directory
+cd backend
+
+# Create virtual environment if you haven't already
+python -m venv .venv
+.venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create the postgres database (transitopsDB)
+python create_db.py
+
+# Seed all database tables (catalogs + rich mock operational data)
+python seed.py
 ```
-- **Frontend Developer Client**: `http://localhost:5173`
-- **Backend API Server**: `http://localhost:8000/docs`
 
-### Demo Logins (Password for all: `Password123!`):
-- Fleet Manager: `fleet.manager@transitops.dev`
-- Driver User: `driver@transitops.dev`
-- Safety Officer: `safety@transitops.dev`
-- Financial Analyst: `finance@transitops.dev`
-
-### Running Tests:
-Verify database rules and constraints:
+### 2. Start the Backend API
+Run the backend FastAPI server locally on port `8000`:
 ```bash
-docker-compose exec backend pytest
+uvicorn app.main:app --reload --port 8000
 ```
+- **Interactive Swagger Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### 3. Run Backend Tests
+Verify database constraints, auth flows, and business rules:
+```bash
+python -m pytest
+```
+
+### 4. Start the Frontend client
+Open a new terminal window to build and start the React client:
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install Node modules
+npm install
+
+# Start Vite developer server
+npm run dev
+```
+- **Web App URL**: [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🔑 Demo Login Credentials
+
+You can log into the system with any of the following 4 roles. All roles use the password: **`Password123!`**
+
+| Email Address | Role Name | Allowed Operations |
+|---|---|---|
+| **`fleet.manager@transitops.dev`** | **Fleet Manager** | Full access (CRUD vehicles/drivers, trip creation, dispatch, fuel/expense, maintenance logs, dashboard analytics) |
+| **`driver@transitops.dev`** | **Driver** | Create/Dispatch/Cancel/Complete Trips, view maps, log fuel & expenses, and access standard operational screens |
+| **`safety@transitops.dev`** | **Safety Officer** | Read vehicles/drivers/reports, suspend drivers, and view security compliance and activity logs |
+| **`finance@transitops.dev`** | **Financial Analyst** | Read vehicle lists, check operational costs/dashboard stats, and view ROI reports |
+
+---
+
+## 🔒 Zero-Knowledge Encryption Model
+
+For driver compliance, sensitive PII data (`driver.license_number` and `driver.contact_number`) is encrypted **client-side** in the browser using the **Web Crypto API (256-bit AES-GCM)**:
+- **Key Derivation**: During login, a symmetric key is derived from the user's password and email using PBKDF2 (100,000 iterations, SHA-256).
+- **Security Boundary**: The backend database only stores Base64 ciphertext and IV. Plaintext data never touches the server.
+- **Seeded Mock Data**: Driver records in the seed script have been pre-encrypted using the `fleet.manager@transitops.dev` user's key derivation parameters. When logged in as the Fleet Manager, you will see all driver licenses and contact details decrypted in real-time. Other roles will show the encrypted ciphertext, illustrating the zero-knowledge security boundary.
+
+---
+
+## 📦 What gets seeded?
+Running `python seed.py` populates a comprehensive, lifelike dataset:
+1. **Locations**: Seeds standard Indian geographic coordinates (Delhi area).
+2. **Vehicle Catalog**: 13 cargo carriers (brands like Tata, Ashok Leyland, Mahindra).
+3. **Mock Vehicles**: 5 active fleet vehicles (Tata Ace, Bolero Pik-Up, etc.) in various statuses (*Available*, *On Trip*, *In Shop*).
+4. **Mock Drivers**: 5 compliant drivers with valid categories (LMV-TR, HMV, HGMV).
+5. **Mock Trips**: 4 real-world trips in different life-cycle phases (*Draft*, *Dispatched*, *Completed*, *Cancelled*).
+6. **Maintenance Logs**: Logs for service repairs, including active maintenance tickets that correctly set vehicle status to *In Shop*.
+7. **Fuel & Toll Expenses**: Detailed expense items mapped to completed trips for accurate ROI calculation on the Reports page.
+8. **Activity Monitor Logs**: Populates the audit log trail for user operations.

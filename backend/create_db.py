@@ -3,9 +3,11 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load environment variables from .env file explicitly using absolute path
+dotenv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+load_dotenv(dotenv_path=dotenv_path)
 
-db_url = os.getenv("DATABASE_URL")
+db_url = os.getenv("DATABASE_URL", "postgresql://postgres:XYZ=octa@localhost:5433/transitopsDB")
 if not db_url or "sqlite" in db_url:
     print("No PostgreSQL DATABASE_URL found or using SQLite. Skipping database creation.")
     exit(0)

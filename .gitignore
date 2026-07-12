@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Environment variables (contains secrets/passwords — never commit)
+backend/.env
+
+# SQLite dev database (we use PostgreSQL)
+backend/transitops.db
+*.db
+*.sqlite3
+
+# Alembic
+# (keep versions/ but not __pycache__ inside it)
+backend/alembic/__pycache__/
+backend/alembic/versions/__pycache__/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.cache/
+
+# IDE / OS
+.vscode/settings.json
+.idea/
+*.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log

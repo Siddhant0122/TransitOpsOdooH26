@@ -1,0 +1,4 @@
+category_code,description,applicable_vehicle_types,min_age,min_prior_experience,notes
+LMV-TR,Light Motor Vehicle - Transport,"three-wheeler cargo, mini truck, pickup, light truck",18,0,"Standard transport license for light commercial vehicles"
+HMV,Heavy Motor Vehicle,"medium truck",20,1,"Requires prior experience with LMV"
+HGMV,Heavy Goods Motor Vehicle,"heavy truck, container truck",22,2,"Requires prior experience with HMV"

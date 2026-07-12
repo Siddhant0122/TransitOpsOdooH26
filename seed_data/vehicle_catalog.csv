@@ -1,0 +1,14 @@
+vehicle_type,brand,model,typical_max_load_capacity_kg,fuel_type,min_license_category
+Three-Wheeler Cargo,Mahindra,Alfa Cargo,500,Diesel,LMV-TR
+Three-Wheeler Cargo,Piaggio,Ape Xtra LDX,600,Diesel,LMV-TR
+Mini Truck,Tata Motors,Tata Ace,750,Diesel,LMV-TR
+Mini Truck,Mahindra,Bolero Pickup,1700,Diesel,LMV-TR
+Mini Truck,Ashok Leyland,Dost+,1250,Diesel,LMV-TR
+Pickup,Tata Motors,Tata Yodha,1500,Diesel,LMV-TR
+Light Truck,Eicher,Pro 2049,4500,Diesel,HMV
+Light Truck,Tata Motors,Tata 407,2500,Diesel,HMV
+Medium Truck,Ashok Leyland,Ecomet 1215,8000,Diesel,HGMV
+Medium Truck,Eicher,Pro 3015,9000,Diesel,HGMV
+Heavy Truck,Tata Motors,Tata Prima,16000,Diesel,HGMV
+Heavy Truck,Ashok Leyland,Captain 3718,18000,Diesel,HGMV
+Container Truck,Volvo,FM Series,25000,Diesel,HGMV

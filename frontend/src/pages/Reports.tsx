@@ -48,9 +48,18 @@ export const Reports: React.FC = () => {
     fetchReportsData();
   }, [selectedRegion, selectedType]);
 
-  const handleExportCSV = () => {
-    const csvUrl = api.getExportCSVUrl(selectedRegion, selectedType);
-    window.open(csvUrl, "_blank");
+  const [exporting, setExporting] = useState(false);
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    try {
+      await api.exportReportsCSV(selectedRegion || undefined, selectedType || undefined);
+    } catch (err) {
+      console.error("CSV export failed", err);
+      alert("Export failed. Please try again.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -94,10 +103,15 @@ export const Reports: React.FC = () => {
 
           <button
             onClick={handleExportCSV}
-            className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all duration-200"
+            disabled={exporting}
+            className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-all duration-200"
           >
-            <FileSpreadsheet className="h-4 w-4" />
-            <span>Export CSV</span>
+            {exporting ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <FileSpreadsheet className="h-4 w-4" />
+            )}
+            <span>{exporting ? "Exporting..." : "Export CSV"}</span>
           </button>
         </div>
       </div>

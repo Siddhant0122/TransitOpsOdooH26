@@ -121,13 +121,25 @@ export const api = {
     if (params.length > 0) query = `?${params.join("&")}`;
     return request<any[]>(`/reports/vehicle-summary${query}`, "GET");
   },
-  getExportCSVUrl: (region?: string, type?: string) => {
-    let query = "";
+  exportReportsCSV: async (region?: string, type?: string): Promise<void> => {
     const params = [];
     if (region) params.push(`region=${region}`);
     if (type) params.push(`type=${type}`);
-    if (params.length > 0) query = `?${params.join("&")}`;
-    return `${API_BASE_URL}/reports/export.csv${query}`;
+    const query = params.length > 0 ? `?${params.join("&")}` : "";
+    const url = `${API_BASE_URL}/reports/export.csv${query}`;
+    const token = localStorage.getItem("transitops_token");
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("CSV export failed");
+    const blob = await response.blob();
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "transitops_report.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   },
 
   // --- Activity Monitor ---

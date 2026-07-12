@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
-import { AlertTriangle, Bell, Key, Sun, Moon } from "lucide-react";
+import { AlertTriangle, Bell, Key, Sun, Moon, Menu } from "lucide-react";
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onToggleSidebar?: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   const { user } = useAuth();
   const [expiringCount, setExpiringCount] = useState(0);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
@@ -41,12 +45,23 @@ export const Navbar: React.FC = () => {
   if (!user) return null;
 
   return (
-    <header className="flex h-16 w-full items-center justify-between border-b border-slate-800 bg-slate-900/40 px-8 backdrop-blur-md">
-      <div className="flex items-center space-x-2">
-        <Key className="h-4 w-4 text-indigo-400" />
-        <span className="text-xs text-indigo-300 font-medium tracking-wide">
-          End-to-End Encryption Key Active (In-Memory Only)
-        </span>
+    <header className="flex h-16 w-full items-center justify-between border-b border-slate-800 bg-slate-900/40 px-4 md:px-8 backdrop-blur-md">
+      <div className="flex items-center space-x-3">
+        {/* Mobile menu trigger */}
+        <button
+          onClick={onToggleSidebar}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 md:hidden cursor-pointer"
+          title="Open Navigation Menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
+        <div className="flex items-center space-x-2">
+          <Key className="h-4 w-4 text-indigo-400 hidden sm:inline-block" />
+          <span className="text-[10px] sm:text-xs text-indigo-300 font-medium tracking-wide">
+            End-to-End Encryption Key Active
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center space-x-4">

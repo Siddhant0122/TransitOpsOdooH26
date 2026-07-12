@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -18,11 +18,13 @@ import { ActivityMonitor } from "./pages/ActivityMonitor";
 import { Unauthorized } from "./pages/Unauthorized";
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Navbar />
+        <Navbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         {children}
       </div>
     </div>

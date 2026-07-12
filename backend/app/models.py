@@ -91,6 +91,7 @@ class Vehicle(Base):
     acquisition_cost = Column(Float, nullable=False)
     status = Column(SAEnum(VehicleStatus), default=VehicleStatus.AVAILABLE, nullable=False)
     region = Column(String, nullable=True)
+    documents = Column(JSON, default=list, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     trips = relationship("Trip", back_populates="vehicle")

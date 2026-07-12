@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List, Any
 from pydantic import BaseModel, EmailStr, Field
 
 from app.models import RoleName, VehicleStatus, DriverStatus, TripStatus, MaintenanceStatus, ExpenseCategory
@@ -45,6 +45,7 @@ class VehicleCreate(BaseModel):
     odometer: float = 0.0
     acquisition_cost: float = Field(ge=0)
     region: Optional[str] = None
+    documents: Optional[List[Any]] = None
 
 
 class VehicleUpdate(BaseModel):
@@ -55,6 +56,7 @@ class VehicleUpdate(BaseModel):
     acquisition_cost: Optional[float] = None
     status: Optional[VehicleStatus] = None
     region: Optional[str] = None
+    documents: Optional[List[Any]] = None
 
 
 class VehicleOut(BaseModel):
@@ -67,6 +69,7 @@ class VehicleOut(BaseModel):
     acquisition_cost: float
     status: VehicleStatus
     region: Optional[str]
+    documents: Optional[List[Any]] = None
 
     class Config:
         from_attributes = True

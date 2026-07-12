@@ -18,6 +18,16 @@ export const Vehicles: React.FC = () => {
   const [catalog, setCatalog] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortField, setSortField] = useState("registration_number");
+  const [sortOrder, setSortOrder] = useState("asc");
+  
+  // Documents state
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
+  const [docType, setDocType] = useState("Insurance");
+  const [docNumber, setDocNumber] = useState("");
+  const [docExpiry, setDocExpiry] = useState("");
   
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -136,11 +146,79 @@ export const Vehicles: React.FC = () => {
     }
   };
 
-  const filteredVehicles = vehicles.filter((v) =>
-    v.registration_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.name_model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    v.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const openDocsModal = (vehicle: any) => {
+    setSelectedVehicle(vehicle);
+    setDocType("Insurance");
+    setDocNumber("");
+    setDocExpiry("");
+    setDocModalOpen(true);
+  };
+
+  const handleAddDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedVehicle) return;
+
+    const newDoc = {
+      type: docType,
+      document_number: docNumber,
+      expiry_date: docExpiry,
+      created_at: new Date().toISOString()
+    };
+
+    const updatedDocs = [...(selectedVehicle.documents || []), newDoc];
+    
+    try {
+      const updatedVehicle = await api.updateVehicle(selectedVehicle.id, {
+        documents: updatedDocs
+      });
+      setSelectedVehicle(updatedVehicle);
+      setDocNumber("");
+      setDocExpiry("");
+      fetchVehicles();
+    } catch (err) {
+      console.error("Failed to add document", err);
+      alert("Failed to add document");
+    }
+  };
+
+  const handleDeleteDocument = async (index: number) => {
+    if (!selectedVehicle) return;
+    if (!window.confirm("Are you sure you want to delete this document?")) return;
+
+    const updatedDocs = (selectedVehicle.documents || []).filter((_: any, i: number) => i !== index);
+
+    try {
+      const updatedVehicle = await api.updateVehicle(selectedVehicle.id, {
+        documents: updatedDocs
+      });
+      setSelectedVehicle(updatedVehicle);
+      fetchVehicles();
+    } catch (err) {
+      console.error("Failed to delete document", err);
+      alert("Failed to delete document");
+    }
+  };
+
+  const filteredVehicles = vehicles
+    .filter((v) => {
+      const matchesSearch =
+        v.registration_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.name_model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.type.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "All" || v.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      let valA = a[sortField];
+      let valB = b[sortField];
+      if (typeof valA === "string") {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
+      }
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
 
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-mesh p-8">
@@ -165,8 +243,8 @@ export const Vehicles: React.FC = () => {
       </div>
 
       {/* Search and Action Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-        <div className="relative w-full sm:max-w-md">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        <div className="relative w-full md:max-w-md">
           <Search className="absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-500" />
           <input
             type="text"
@@ -175,6 +253,47 @@ export const Vehicles: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-lg bg-slate-900/60 border border-slate-800 py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
           />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          {/* Status Filter */}
+          <div className="flex items-center space-x-2">
+            <span className="text-slate-400 text-xs font-semibold">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-lg bg-slate-900/60 border border-slate-850 px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="All">All Statuses</option>
+              <option value="Available">Available</option>
+              <option value="On Trip">On Trip</option>
+              <option value="In Shop">In Shop</option>
+              <option value="Retired">Retired</option>
+            </select>
+          </div>
+
+          {/* Sort Field */}
+          <div className="flex items-center space-x-2">
+            <span className="text-slate-400 text-xs font-semibold">Sort By:</span>
+            <select
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value)}
+              className="rounded-lg bg-slate-900/60 border border-slate-855 px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+            >
+              <option value="registration_number">Reg Number</option>
+              <option value="name_model">Model</option>
+              <option value="odometer">Odometer</option>
+              <option value="acquisition_cost">Acquisition Cost</option>
+            </select>
+          </div>
+
+          {/* Sort Order */}
+          <button
+            onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+            className="rounded-lg bg-slate-900/60 border border-slate-800 px-3.5 py-2 text-xs text-white font-medium hover:bg-slate-800 active:scale-[0.98] transition-all cursor-pointer"
+          >
+            {sortOrder === "asc" ? "↑ Asc" : "↓ Desc"}
+          </button>
         </div>
       </div>
 
@@ -238,22 +357,32 @@ export const Vehicles: React.FC = () => {
                 </div>
               </div>
 
-              {isFleetManager && vehicle.status !== "Retired" && (
-                <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-slate-800/50">
-                  <button
-                    onClick={() => openEditModal(vehicle)}
-                    className="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(vehicle.id)}
-                    className="p-2 rounded bg-rose-950/20 border border-rose-900/30 text-rose-400 hover:bg-rose-900/30 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              )}
+              <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-800/50">
+                <button
+                  onClick={() => openDocsModal(vehicle)}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 rounded bg-slate-900 border border-slate-800 text-xs text-indigo-400 hover:text-indigo-300 hover:border-slate-700 transition-colors cursor-pointer"
+                >
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
+                  <span>Docs ({vehicle.documents?.length || 0})</span>
+                </button>
+
+                {isFleetManager && vehicle.status !== "Retired" && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEditModal(vehicle)}
+                      className="p-1.5 rounded bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(vehicle.id)}
+                      className="p-1.5 rounded bg-rose-950/20 border border-rose-900/30 text-rose-400 hover:bg-rose-900/30 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -404,6 +533,133 @@ export const Vehicles: React.FC = () => {
                 {editingVehicle ? "Update Registry" : "Complete Registration"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Document Management Modal */}
+      {docModalOpen && selectedVehicle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xl rounded-2xl glass-card border border-slate-850 p-6 shadow-2xl">
+            <div className="flex justify-between items-center mb-6 pb-3 border-b border-slate-800">
+              <div>
+                <h2 className="text-xl font-bold font-outfit text-white">
+                  Vehicle Document Registry
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Reg No: <span className="font-bold text-slate-200">{selectedVehicle.registration_number}</span> | Model: {selectedVehicle.name_model}
+                </p>
+              </div>
+              <button
+                onClick={() => setDocModalOpen(false)}
+                className="text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Document Listing */}
+            <div className="mb-6 max-h-48 overflow-y-auto space-y-3 pr-2">
+              <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Registered Certificates</h3>
+              {(!selectedVehicle.documents || selectedVehicle.documents.length === 0) ? (
+                <p className="text-xs text-slate-500 italic py-2">No documents uploaded for this vehicle.</p>
+              ) : (
+                selectedVehicle.documents.map((doc: any, index: number) => {
+                  const isExpired = doc.expiry_date && new Date(doc.expiry_date) < new Date();
+                  return (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-white font-outfit">{doc.type}</span>
+                          <span className="text-slate-500">|</span>
+                          <span className="text-slate-400">{doc.document_number}</span>
+                        </div>
+                        <div className="mt-1 flex items-center space-x-2 text-[10px]">
+                          <span className="text-slate-500">Expires:</span>
+                          <span className={isExpired ? "text-rose-400 font-bold" : "text-slate-300"}>
+                            {doc.expiry_date ? new Date(doc.expiry_date).toLocaleDateString() : "Never"}
+                          </span>
+                          {isExpired && <span className="text-rose-500 font-bold">(EXPIRED)</span>}
+                        </div>
+                      </div>
+                      
+                      {isFleetManager && (
+                        <button
+                          onClick={() => handleDeleteDocument(index)}
+                          className="p-1 rounded bg-rose-950/20 text-rose-400 hover:bg-rose-900/30 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Add Document Form (Fleet Manager Only) */}
+            {isFleetManager ? (
+              <form onSubmit={handleAddDocument} className="border-t border-slate-800/80 pt-4 space-y-4">
+                <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Register New Document</h3>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 mb-1.5 uppercase tracking-wider">
+                      Doc Type
+                    </label>
+                    <select
+                      value={docType}
+                      onChange={(e) => setDocType(e.target.value)}
+                      className="w-full rounded-lg bg-slate-900 border border-slate-800 p-2 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
+                    >
+                      <option value="Insurance">Insurance</option>
+                      <option value="Pollution (PUC)">Pollution (PUC)</option>
+                      <option value="Fitness Cert">Fitness Cert</option>
+                      <option value="Road Permit">Road Permit</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 mb-1.5 uppercase tracking-wider">
+                      Certificate No
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={docNumber}
+                      onChange={(e) => setDocNumber(e.target.value)}
+                      placeholder="e.g. INS-987654"
+                      className="w-full rounded-lg bg-slate-900 border border-slate-800 p-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-400 mb-1 mb-1.5 uppercase tracking-wider">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      value={docExpiry}
+                      onChange={(e) => setDocExpiry(e.target.value)}
+                      className="w-full rounded-lg bg-slate-900 border border-slate-800 p-2 text-xs text-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 py-2.5 text-xs font-semibold text-white shadow-lg active:scale-[0.99] transition-transform cursor-pointer"
+                >
+                  Register Document
+                </button>
+              </form>
+            ) : (
+              <div className="border-t border-slate-800/80 pt-4 text-center text-slate-500 text-xs italic">
+                Only Fleet Managers can upload or edit vehicle compliance documents.
+              </div>
+            )}
           </div>
         </div>
       )}

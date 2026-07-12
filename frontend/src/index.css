@@ -73,3 +73,112 @@ h1, h2, h3, h4, h5, h6 {
 .hover-scale {
   @apply transition-all duration-300 hover:scale-[1.01] hover:-translate-y-[1px];
 }
+
+/* Light theme overrides */
+html.light body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.light .bg-gradient-mesh {
+  background-color: #f1f5f9;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(244, 63, 94, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 40%);
+}
+
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+html.light header {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+
+html.light header span, html.light header h1, html.light header h2, html.light header p {
+  color: #1e293b;
+}
+
+html.light header span.text-white {
+  color: #0f172a;
+}
+
+html.light .text-slate-400 {
+  color: #64748b;
+}
+
+html.light .text-slate-300 {
+  color: #475569;
+}
+
+html.light .bg-slate-900\/60 {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html.light input, html.light select, html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .bg-slate-850 {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #334155;
+}
+
+html.light .border-slate-800 {
+  border-color: #cbd5e1;
+}
+
+html.light .border-slate-850 {
+  border-color: #e2e8f0;
+}
+
+html.light .text-white {
+  color: #0f172a;
+}
+
+html.light .bg-slate-950 {
+  background-color: #f8fafc;
+}
+
+html.light .text-slate-100 {
+  color: #0f172a;
+}
+
+html.light .text-slate-200 {
+  color: #1e293b;
+}
+
+html.light .bg-slate-900 {
+  background-color: #f1f5f9;
+}
+
+html.light .bg-slate-900\/40 {
+  background-color: rgba(241, 245, 249, 0.8);
+}
+
+html.light .hover\:bg-slate-800:hover {
+  background-color: #e2e8f0;
+}
+
+html.light .hover\:text-white:hover {
+  color: #0f172a;
+}
+

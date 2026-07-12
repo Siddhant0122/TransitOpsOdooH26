@@ -1,11 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../services/api";
-import { AlertTriangle, Bell, Key } from "lucide-react";
+import { AlertTriangle, Bell, Key, Sun, Moon } from "lucide-react";
 
 export const Navbar: React.FC = () => {
   const { user } = useAuth();
   const [expiringCount, setExpiringCount] = useState(0);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+
+  useEffect(() => {
+    if (theme === "light") {
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    } else {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
 
   useEffect(() => {
     async function fetchLicenseAlerts() {
@@ -41,6 +57,14 @@ export const Navbar: React.FC = () => {
             <span>{expiringCount} Driver Licenses Expiring Soon</span>
           </div>
         )}
+
+        <button
+          onClick={toggleTheme}
+          className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          title="Toggle Light/Dark Theme"
+        >
+          {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
 
         <div className="relative cursor-pointer p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
           <Bell className="h-5 w-5" />
